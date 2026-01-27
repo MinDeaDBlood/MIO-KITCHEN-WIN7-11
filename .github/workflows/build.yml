@@ -107,6 +107,14 @@ jobs:
     - name: Pack Tool
       run: python3 build.py
     
+    - name: Check minimum macOS version
+      run: |
+        if [ -f "dist/tool" ]; then
+          echo "Checking minimum macOS version for built binary:"
+          otool -l dist/tool | grep -A 3 "LC_BUILD_VERSION" || echo "No version info found"
+          otool -l dist/tool | grep -A 3 "LC_VERSION_MIN" || echo "No min version found"
+        fi
+    
     - name: Rename macOS artifacts with version
       run: |
         MACOS_VER="${{ steps.macos_version.outputs.version }}"
