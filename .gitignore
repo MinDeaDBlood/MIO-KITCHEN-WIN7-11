@@ -42,6 +42,9 @@ env/
 *~
 .DS_Store
 
+# Kiro specs (local only)
+.kiro/
+
 # Build artifacts
 MIO-KITCHEN-win/
 MIO-KITCHEN-linux/
