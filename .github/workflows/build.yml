@@ -59,6 +59,22 @@ jobs:
       run: |
         python build.py
         
+    - name: Rename artifacts with OS version
+      shell: bash
+      run: |
+        # Переименовываем архивы чтобы было понятно версию ОС
+        if [[ "${{ matrix.os }}" == "macos-13" ]]; then
+          # macOS 13 Intel
+          if [ -f "MIO-KITCHEN-macos.x64.zip" ]; then
+            mv MIO-KITCHEN-macos.x64.zip MIO-KITCHEN-macos13-intel-x64.zip
+          fi
+        elif [[ "${{ matrix.os }}" == "macos-15" ]]; then
+          # macOS 15 ARM64
+          if [ -f "MIO-KITCHEN-macos.arm64.zip" ]; then
+            mv MIO-KITCHEN-macos.arm64.zip MIO-KITCHEN-macos15-arm64.zip
+          fi
+        fi
+        
     - name: Get tag name
       id: tag
       shell: bash
