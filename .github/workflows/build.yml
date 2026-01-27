@@ -63,7 +63,12 @@ jobs:
       shell: bash
       run: |
         # Переименовываем архивы чтобы было понятно версию ОС
-        if [[ "${{ matrix.os }}" == "macos-13" ]]; then
+        if [[ "${{ matrix.os }}" == "ubuntu-24.04" ]]; then
+          # Ubuntu 24.04 x64
+          if [ -f "MIO-KITCHEN-linux.x64.zip" ]; then
+            mv MIO-KITCHEN-linux.x64.zip MIO-KITCHEN-ubuntu24.04-x64.zip
+          fi
+        elif [[ "${{ matrix.os }}" == "macos-13" ]]; then
           # macOS 13 Intel
           if [ -f "MIO-KITCHEN-macos.x64.zip" ]; then
             mv MIO-KITCHEN-macos.x64.zip MIO-KITCHEN-macos13-intel-x64.zip
