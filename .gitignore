@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec.bak
+
+# Virtual environments
+venv/
+venv38/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build artifacts
+MIO-KITCHEN-win/
+MIO-KITCHEN-linux/
+MIO-KITCHEN-macos/
+MIO-KITCHEN-macos-intel/
+MIO-KITCHEN-4.0.0-preview1/
+*.zip
+body.md
+
+# Temporary files
+*.log
+*.tmp
+*.bak
+*.cache
+
+# OS specific
+Thumbs.db
+desktop.ini
+
+# Test files
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation builds
+docs/_build/
+
+# Local configuration
+config.local
+*.local
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
