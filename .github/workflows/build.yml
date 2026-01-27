@@ -81,7 +81,7 @@ jobs:
   build-macos:
     strategy:
       matrix:
-        os: [macos-15, macos-15-intel]
+        os: [macos-latest, macos-15-intel]
     
     runs-on: ${{ matrix.os }}
     
@@ -101,10 +101,10 @@ jobs:
       run: python3 build.py
         
     - name: Upload ARM64 macOS Build
-      if: success() && matrix.os == 'macos-15'
+      if: success() && matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
       with:
-        name: MIO-KITCHEN-macos15-arm64
+        name: MIO-KITCHEN-macos-arm64
         path: './MIO-KITCHEN-macos.arm64.zip'
         
     - name: Upload Intel macOS Build
