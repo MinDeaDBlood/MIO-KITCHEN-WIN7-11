@@ -56,14 +56,26 @@ class ListBox(Frame):
                 i.destroy()
             except (TclError, AttributeError, ValueError):
                 pass
-        self.var.set(False)
+        self.loaded_value.clear()
+        if hasattr(self, 'var') and self.var:
+            self.var.set(False)
+
+    def destroy(self):
+        """Safely destroy the ListBox widget by disconnecting canvas-scrollbar binding."""
+        try:
+            if hasattr(self, 'canvas') and self.canvas.winfo_exists():
+                self.canvas.config(yscrollcommand='')
+        except TclError:
+            # Widget already destroyed or in process of destruction
+            pass
+        super().destroy()
 
     def gui(self):
         self.var = BooleanVar(value=False)
-        scrollbar = Scrollbar(self, orient='vertical')
-        self.canvas = Canvas(self, yscrollcommand=scrollbar.set, width=250, height=150)
+        self.scrollbar = Scrollbar(self, orient='vertical')
+        self.canvas = Canvas(self, yscrollcommand=self.scrollbar.set, width=250, height=150)
         self.canvas.pack_propagate(False)
-        scrollbar.config(command=self.canvas.yview)
+        self.scrollbar.config(command=self.canvas.yview)
         self.label_frame = Frame(self.canvas)
         self.canvas.create_window((0, 0), window=self.label_frame, anchor='nw')
         self.canvas.bind("<MouseWheel>",
@@ -75,14 +87,19 @@ class ListBox(Frame):
 
         self.set_all.pack(padx=5, pady=5, anchor='sw', side='bottom')
         Separator(self, orient=HORIZONTAL).pack(padx=10, pady=10, fill=X, side='bottom')
-        scrollbar.pack(side='right', fill='y', padx=10, pady=10)
+        self.scrollbar.pack(side='right', fill='y', padx=10, pady=10)
         self.canvas.pack(fill='both', expand=True)
 
         self.update_ui()
 
     def update_ui(self):
-        self.label_frame.update_idletasks()
-        self.canvas.config(scrollregion=self.canvas.bbox('all'), highlightthickness=0)
+        try:
+            if hasattr(self, 'canvas') and self.canvas.winfo_exists():
+                if hasattr(self, 'label_frame') and self.label_frame.winfo_exists():
+                    self.label_frame.update_idletasks()
+                    self.canvas.config(scrollregion=self.canvas.bbox('all'), highlightthickness=0)
+        except TclError:
+            pass
 
     def __set_value(self, var, value):
         if var.get():
@@ -126,12 +143,22 @@ class ScrollFrame(Frame):
             except (TclError, AttributeError, ValueError):
                 pass
 
+    def destroy(self):
+        """Safely destroy the ScrollFrame widget by disconnecting canvas-scrollbar binding."""
+        try:
+            if hasattr(self, 'canvas') and self.canvas.winfo_exists():
+                self.canvas.config(yscrollcommand='')
+        except TclError:
+            # Widget already destroyed or in process of destruction
+            pass
+        super().destroy()
+
     def gui(self):
-        scrollbar = Scrollbar(self, orient='vertical')
-        scrollbar.pack(side='right', fill='y', padx=10)
-        self.canvas = Canvas(self, yscrollcommand=scrollbar.set, height=450)
+        self.scrollbar = Scrollbar(self, orient='vertical')
+        self.scrollbar.pack(side='right', fill='y', padx=10)
+        self.canvas = Canvas(self, yscrollcommand=self.scrollbar.set, height=450)
         self.canvas.pack(fill='both', expand=True)
-        scrollbar.config(command=self.canvas.yview)
+        self.scrollbar.config(command=self.canvas.yview)
         self.label_frame = Frame(self.canvas)
         self.canvas.create_window((0, 0), window=self.label_frame, anchor='nw')
         self.canvas.bind("<MouseWheel>", lambda event: self.__on_mouse(event))
@@ -140,8 +167,13 @@ class ScrollFrame(Frame):
         self.update_ui()
 
     def update_ui(self):
-        self.label_frame.update_idletasks()
-        self.canvas.config(scrollregion=self.canvas.bbox('all'), highlightthickness=0)
+        try:
+            if hasattr(self, 'canvas') and self.canvas.winfo_exists():
+                if hasattr(self, 'label_frame') and self.label_frame.winfo_exists():
+                    self.label_frame.update_idletasks()
+                    self.canvas.config(scrollregion=self.canvas.bbox('all'), highlightthickness=0)
+        except TclError:
+            pass
 
 
 if __name__ == '__main__':
