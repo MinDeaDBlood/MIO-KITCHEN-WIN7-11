@@ -107,12 +107,28 @@ jobs:
     - name: Pack Tool
       run: python3 build.py
     
-    - name: Check minimum macOS version
+    - name: Check minimum macOS version of binaries
       run: |
+        echo "=== Checking pre-built binaries minimum macOS version ==="
+        if [ "${{ matrix.os }}" == "macos-15" ]; then
+          BIN_PATH="bin/Darwin/arm64"
+        else
+          BIN_PATH="bin/Darwin/x86_64"
+        fi
+        
+        echo "Checking binaries in $BIN_PATH:"
+        for binary in $BIN_PATH/*; do
+          if [ -f "$binary" ] && [ -x "$binary" ]; then
+            echo "--- $(basename $binary) ---"
+            otool -l "$binary" | grep -A 3 "LC_BUILD_VERSION" || otool -l "$binary" | grep -A 3 "LC_VERSION_MIN" || echo "No version info"
+            break
+          fi
+        done
+        
+        echo ""
+        echo "=== Checking built PyInstaller binary ==="
         if [ -f "dist/tool" ]; then
-          echo "Checking minimum macOS version for built binary:"
-          otool -l dist/tool | grep -A 3 "LC_BUILD_VERSION" || echo "No version info found"
-          otool -l dist/tool | grep -A 3 "LC_VERSION_MIN" || echo "No min version found"
+          otool -l dist/tool | grep -A 3 "LC_BUILD_VERSION" || otool -l dist/tool | grep -A 3 "LC_VERSION_MIN" || echo "No version info found"
         fi
     
     - name: Rename macOS artifacts with version
