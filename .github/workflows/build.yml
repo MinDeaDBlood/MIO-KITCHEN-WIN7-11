@@ -30,11 +30,11 @@ jobs:
             arch: 'x64'
             name: 'linux.x64'
           # macOS builds
-          - os: macos-13  # Intel (последняя версия с Intel)
+          - os: macos-13  # Intel (последняя версия с поддержкой Intel)
             python: '3.8.10'
             arch: 'x64'
-            name: 'macos.x64'
-          - os: macos-15  # Apple Silicon (последняя версия)
+            name: 'macos-intel.x64'
+          - os: macos-15  # Apple Silicon (последняя версия, только ARM64)
             python: '3.11'  # macOS 15 requires Python 3.11+
             arch: 'arm64'
             name: 'macos.arm64'
