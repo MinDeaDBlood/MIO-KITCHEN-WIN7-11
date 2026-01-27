@@ -93,6 +93,13 @@ jobs:
       with:
         python-version: '3.12'
         
+    - name: Get macOS version
+      id: macos_version
+      run: |
+        MACOS_VERSION=$(sw_vers -productVersion | cut -d '.' -f 1)
+        echo "version=$MACOS_VERSION" >> $GITHUB_OUTPUT
+        echo "macOS version: $MACOS_VERSION"
+        
     - name: Install Packages
       run: |
         python3 -m pip install -U --force-reinstall pip
@@ -102,26 +109,29 @@ jobs:
     
     - name: Rename macOS artifacts with version
       run: |
+        MACOS_VER="${{ steps.macos_version.outputs.version }}"
+        ARCH="${{ matrix.os == 'macos-15' && 'arm64' || 'intel-x64' }}"
+        
         if [ -f "MIO-KITCHEN-macos.arm64.zip" ]; then
-          mv MIO-KITCHEN-macos.arm64.zip MIO-KITCHEN-macos15-arm64.zip
+          mv MIO-KITCHEN-macos.arm64.zip MIO-KITCHEN-macos${MACOS_VER}-arm64.zip
         fi
         if [ -f "MIO-KITCHEN-macos.x64.zip" ]; then
-          mv MIO-KITCHEN-macos.x64.zip MIO-KITCHEN-macos15-intel-x64.zip
+          mv MIO-KITCHEN-macos.x64.zip MIO-KITCHEN-macos${MACOS_VER}-intel-x64.zip
         fi
         
     - name: Upload ARM64 macOS Build
       if: success() && matrix.os == 'macos-15'
       uses: actions/upload-artifact@v4
       with:
-        name: MIO-KITCHEN-macos15-arm64
-        path: './MIO-KITCHEN-macos15-arm64.zip'
+        name: MIO-KITCHEN-macos${{ steps.macos_version.outputs.version }}-arm64
+        path: './MIO-KITCHEN-macos${{ steps.macos_version.outputs.version }}-arm64.zip'
         
     - name: Upload Intel macOS Build
       if: success() && matrix.os == 'macos-15-intel'
       uses: actions/upload-artifact@v4
       with:
-        name: MIO-KITCHEN-macos15-intel-x64
-        path: './MIO-KITCHEN-macos15-intel-x64.zip'
+        name: MIO-KITCHEN-macos${{ steps.macos_version.outputs.version }}-intel-x64
+        path: './MIO-KITCHEN-macos${{ steps.macos_version.outputs.version }}-intel-x64.zip'
           
   release:
     needs: [build-windows, build-linux, build-macos]
