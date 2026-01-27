@@ -93,10 +93,6 @@ jobs:
       with:
         python-version: '3.12'
         
-    - name: Set macOS deployment target
-      run: |
-        echo "MACOSX_DEPLOYMENT_TARGET=13.0" >> $GITHUB_ENV
-        
     - name: Install Packages
       run: |
         python3 -m pip install -U --force-reinstall pip
