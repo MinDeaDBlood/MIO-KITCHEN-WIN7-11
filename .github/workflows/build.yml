@@ -102,6 +102,10 @@ jobs:
       with:
         python-version: ${{ matrix.python }}
         
+    - name: Set macOS deployment target
+      run: |
+        echo "MACOSX_DEPLOYMENT_TARGET=11.0" >> $GITHUB_ENV
+        
     - name: Install dependencies
       run: |
         python -m pip install -r requirements.txt
