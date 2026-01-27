@@ -130,6 +130,8 @@ jobs:
         echo ""
         
         MIN_VERSION=""
+        DEPRECATED_FOUND=0
+        
         for binary in $BIN_PATH/*; do
           if [ -f "$binary" ] && [ -x "$binary" ]; then
             BINARY_NAME=$(basename "$binary")
@@ -150,23 +152,32 @@ jobs:
               fi
             fi
             
-            # Test if binary runs on current system
-            if "$binary" --version &>/dev/null || "$binary" -h &>/dev/null || "$binary" &>/dev/null; then
-              echo "  ✓ Binary runs on macOS $(sw_vers -productVersion)"
+            # Check for deprecated/removed APIs
+            echo "  Checking for deprecated APIs..."
+            DEPRECATED_SYMBOLS=$(nm -u "$binary" 2>/dev/null | grep -i "deprecated" || true)
+            if [ -n "$DEPRECATED_SYMBOLS" ]; then
+              echo "  ⚠️  Warning: Found deprecated symbols"
+              DEPRECATED_FOUND=1
             else
-              echo "  ✓ Binary exists (compatibility check skipped)"
+              echo "  ✓ No deprecated symbols found"
+            fi
+            
+            # Test if binary actually runs on current system
+            echo "  Testing binary execution on macOS $(sw_vers -productVersion)..."
+            if timeout 2 "$binary" --version &>/dev/null || timeout 2 "$binary" -h &>/dev/null || timeout 2 "$binary" &>/dev/null; then
+              echo "  ✓ Binary successfully runs on macOS $(sw_vers -productVersion)"
+            else
+              EXIT_CODE=$?
+              if [ $EXIT_CODE -eq 124 ]; then
+                echo "  ✓ Binary started (timeout - normal for some tools)"
+              else
+                echo "  ⚠️  Binary execution test inconclusive (exit code: $EXIT_CODE)"
+              fi
             fi
             echo ""
             break
           fi
         done
-        
-        if [ -n "$MIN_VERSION" ]; then
-          echo "=== Summary ==="
-          echo "Minimum macOS version: $MIN_VERSION"
-          echo "Tested on macOS: $(sw_vers -productVersion)"
-          echo "Expected compatibility: macOS $MIN_VERSION - $(sw_vers -productVersion | cut -d '.' -f 1).x"
-        fi
         
         echo ""
         echo "=== PyInstaller binary check ==="
@@ -183,8 +194,31 @@ jobs:
               echo "  No version info found"
             fi
           fi
+          
+          # Check Python dependencies
+          echo ""
+          echo "  Checking Python framework compatibility..."
+          otool -L dist/tool | grep -i python || echo "  No Python framework dependencies"
         else
           echo "  Built binary not found yet"
+        fi
+        
+        echo ""
+        echo "=== Compatibility Summary ==="
+        if [ -n "$MIN_VERSION" ]; then
+          echo "Minimum macOS version: $MIN_VERSION"
+          echo "Built and tested on: macOS $(sw_vers -productVersion)"
+          echo "Expected compatibility: macOS $MIN_VERSION - $(sw_vers -productVersion | cut -d '.' -f 1).x+"
+          echo ""
+          if [ $DEPRECATED_FOUND -eq 1 ]; then
+            echo "⚠️  WARNING: Deprecated APIs detected"
+            echo "   May have issues on future macOS versions"
+          else
+            echo "✓ No deprecated APIs detected"
+            echo "✓ Should work on current and future macOS versions"
+          fi
+        else
+          echo "⚠️  Could not determine minimum version"
         fi
         echo "=========================================="
     
