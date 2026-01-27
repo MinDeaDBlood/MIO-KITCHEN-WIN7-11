@@ -12,16 +12,44 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          # Windows builds
+          - os: windows-latest
+            python: '3.8.10'
+            arch: 'x64'
+            name: 'win7-11.x64'
+          - os: windows-latest
+            python: '3.8.10'
+            arch: 'x86'
+            name: 'win7-11.x86'
+          # Linux builds
+          - os: ubuntu-20.04
+            python: '3.8.10'
+            arch: 'x64'
+            name: 'linux.x64'
+          # macOS builds
+          - os: macos-13  # Intel
+            python: '3.8.10'
+            arch: 'x64'
+            name: 'macos.x64'
+          - os: macos-14  # Apple Silicon
+            python: '3.11'  # macOS 14 requires Python 3.11+
+            arch: 'arm64'
+            name: 'macos.arm64'
+    
+    runs-on: ${{ matrix.os }}
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Python 3.8.10
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.8.10'
+        python-version: ${{ matrix.python }}
+        architecture: ${{ matrix.arch }}
         
     - name: Install dependencies
       run: |
@@ -33,26 +61,36 @@ jobs:
         
     - name: Get tag name
       id: tag
+      shell: bash
       run: |
-        if ($env:GITHUB_REF -match 'refs/tags/(.*)') {
-          echo "tag=$($matches[1])" >> $env:GITHUB_OUTPUT
-        } else {
-          echo "tag=manual-build" >> $env:GITHUB_OUTPUT
-        }
-      shell: pwsh
+        if [[ "$GITHUB_REF" =~ refs/tags/(.*) ]]; then
+          echo "tag=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+        else
+          echo "tag=manual-build" >> $GITHUB_OUTPUT
+        fi
       
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: MIO-KITCHEN-${{ steps.tag.outputs.tag }}
+        name: MIO-KITCHEN-${{ matrix.name }}-${{ steps.tag.outputs.tag }}
         path: |
           MIO-KITCHEN-*.zip
           
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+        
     - name: Create Release
-      if: startsWith(github.ref, 'refs/tags/v')
       uses: softprops/action-gh-release@v1
       with:
-        files: MIO-KITCHEN-*.zip
+        files: artifacts/**/*.zip
         draft: false
         prerelease: false
       env:
