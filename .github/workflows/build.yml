@@ -82,9 +82,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-13  # Intel
-            python: '3.8.10'
-            name: 'macos13-intel-x64'
+          - os: macos-15-intel  # Intel (macOS 15)
+            python: '3.12'
+            name: 'macos15-intel-x64'
             original: 'macos.x64'
           - os: macos-latest  # ARM64 (macos-14)
             python: '3.12'
