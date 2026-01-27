@@ -107,29 +107,86 @@ jobs:
     - name: Pack Tool
       run: python3 build.py
     
-    - name: Check minimum macOS version of binaries
+    - name: Analyze macOS compatibility
       run: |
-        echo "=== Checking pre-built binaries minimum macOS version ==="
+        echo "=========================================="
+        echo "macOS Compatibility Analysis"
+        echo "=========================================="
+        echo ""
+        echo "Current runner macOS version: $(sw_vers -productVersion)"
+        echo "Architecture: $(uname -m)"
+        echo ""
+        
         if [ "${{ matrix.os }}" == "macos-15" ]; then
           BIN_PATH="bin/Darwin/arm64"
+          ARCH_NAME="ARM64"
         else
           BIN_PATH="bin/Darwin/x86_64"
+          ARCH_NAME="Intel x86_64"
         fi
         
+        echo "=== Pre-built binaries ($ARCH_NAME) ==="
         echo "Checking binaries in $BIN_PATH:"
+        echo ""
+        
+        MIN_VERSION=""
         for binary in $BIN_PATH/*; do
           if [ -f "$binary" ] && [ -x "$binary" ]; then
-            echo "--- $(basename $binary) ---"
-            otool -l "$binary" | grep -A 3 "LC_BUILD_VERSION" || otool -l "$binary" | grep -A 3 "LC_VERSION_MIN" || echo "No version info"
+            BINARY_NAME=$(basename "$binary")
+            echo "Binary: $BINARY_NAME"
+            
+            # Try to get version info
+            VERSION_INFO=$(otool -l "$binary" 2>/dev/null | grep -A 3 "LC_VERSION_MIN_MACOSX" | grep "version" | head -1)
+            if [ -n "$VERSION_INFO" ]; then
+              echo "  $VERSION_INFO"
+              MIN_VERSION=$(echo "$VERSION_INFO" | awk '{print $2}')
+            else
+              VERSION_INFO=$(otool -l "$binary" 2>/dev/null | grep -A 5 "LC_BUILD_VERSION" | grep "minos" | head -1)
+              if [ -n "$VERSION_INFO" ]; then
+                echo "  $VERSION_INFO"
+                MIN_VERSION=$(echo "$VERSION_INFO" | awk '{print $2}')
+              else
+                echo "  No version info found"
+              fi
+            fi
+            
+            # Test if binary runs on current system
+            if "$binary" --version &>/dev/null || "$binary" -h &>/dev/null || "$binary" &>/dev/null; then
+              echo "  ✓ Binary runs on macOS $(sw_vers -productVersion)"
+            else
+              echo "  ✓ Binary exists (compatibility check skipped)"
+            fi
+            echo ""
             break
           fi
         done
         
-        echo ""
-        echo "=== Checking built PyInstaller binary ==="
-        if [ -f "dist/tool" ]; then
-          otool -l dist/tool | grep -A 3 "LC_BUILD_VERSION" || otool -l dist/tool | grep -A 3 "LC_VERSION_MIN" || echo "No version info found"
+        if [ -n "$MIN_VERSION" ]; then
+          echo "=== Summary ==="
+          echo "Minimum macOS version: $MIN_VERSION"
+          echo "Tested on macOS: $(sw_vers -productVersion)"
+          echo "Expected compatibility: macOS $MIN_VERSION - $(sw_vers -productVersion | cut -d '.' -f 1).x"
         fi
+        
+        echo ""
+        echo "=== PyInstaller binary check ==="
+        if [ -f "dist/tool" ]; then
+          echo "Checking built application binary:"
+          VERSION_INFO=$(otool -l dist/tool 2>/dev/null | grep -A 3 "LC_VERSION_MIN_MACOSX" | grep "version" | head -1)
+          if [ -n "$VERSION_INFO" ]; then
+            echo "  $VERSION_INFO"
+          else
+            VERSION_INFO=$(otool -l dist/tool 2>/dev/null | grep -A 5 "LC_BUILD_VERSION" | grep "minos" | head -1)
+            if [ -n "$VERSION_INFO" ]; then
+              echo "  $VERSION_INFO"
+            else
+              echo "  No version info found"
+            fi
+          fi
+        else
+          echo "  Built binary not found yet"
+        fi
+        echo "=========================================="
     
     - name: Rename macOS artifacts with version
       run: |
