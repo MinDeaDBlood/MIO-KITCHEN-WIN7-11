@@ -7260,7 +7260,7 @@ class UnpackGui(ttk.LabelFrame):
         parts_dict = JsonEdit(f"{work}config/parts_info").read()
         for folder in os.listdir(work):
             if os.path.isdir(work + folder) and folder in parts_dict.keys():
-                self.lsg.insert(f"{folder} [{parts_dict.get(folder, 'Unknown')}]", folder)
+                self.lsg.insert(folder, folder)
         return True
 
     def close_(self):
