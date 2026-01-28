@@ -28,6 +28,9 @@ from enum import IntEnum
 from os import getcwd
 from os.path import exists
 from random import randint, choice
+
+# Apply platform.machine() fix for Windows 7 compatibility
+import src.core.platform_machine_fixes
 from subprocess import Popen
 from threading import Thread
 from lzma import LZMADecompressor
