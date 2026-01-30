@@ -953,3 +953,39 @@ class ModuleErrorCodes(IntEnum):
     IsBroken = 3
     # GenericError is not recommended.
     GenericError = 9
+
+
+# Platform name mapping for plugin compatibility
+# Supports various naming conventions used by different plugins
+PLATFORM_ALIASES = {
+    'Windows': ['Windows', 'win32', 'windows', 'win'],
+    'Linux': ['Linux', 'linux'],
+    'Darwin': ['Darwin', 'macos', 'osx', 'mac']
+}
+
+
+def is_platform_supported(required_platforms: list) -> bool:
+    """
+    Check if current platform is in the list of required platforms.
+    Supports platform aliases (e.g., 'win32' for 'Windows').
+    
+    This function provides backward compatibility with plugins that use
+    alternative platform names (e.g., 'win32' instead of 'Windows').
+    
+    Args:
+        required_platforms: List of platform names from plugin info
+        
+    Returns:
+        True if current platform is supported, False otherwise
+    """
+    if not required_platforms:
+        return True
+        
+    current_platform = platform.system()
+    current_aliases = PLATFORM_ALIASES.get(current_platform, [current_platform])
+    
+    for required in required_platforms:
+        for alias in current_aliases:
+            if required.lower() == alias.lower():
+                return True
+    return False

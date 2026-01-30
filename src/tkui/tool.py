@@ -71,7 +71,7 @@ import sv_ttk
 from PIL.Image import open as open_img
 from PIL.ImageTk import PhotoImage
 from src.core.utils import lang, LogoDumper, terminate_process, calculate_md5_file, calculate_sha256_file, \
-    JsonEdit, DevNull, ModuleErrorCodes, hum_convert, GuoKeLogo, img2simg, prog_path
+    JsonEdit, DevNull, ModuleErrorCodes, hum_convert, GuoKeLogo, img2simg, prog_path, is_platform_supported
 
 if os.name == 'nt':
     from ctypes import windll, c_int, byref, sizeof
@@ -2939,10 +2939,12 @@ class ModuleManager:
         try:
             supports_str = mconf.get('module', 'supports', '')
             supports = supports_str.split() if supports_str else []
-            if supports and platform.system() not in supports:
+            if supports and not is_platform_supported(supports):
                 logging.warning(
                     f"ModuleManager.install: Platform not supported for plugin '{install_id}'. Required: {supports}, Current: {platform.system()}")
                 return module_error_codes.PlatformNotSupport, f"Unsupported platform: {platform.system()}"
+            if supports:
+                logging.debug(f"ModuleManager.install: Platform check for '{install_id}': Required={supports}, Current={platform.system()}, Supported=True")
         except Exception as e:
             logging.exception(f"ModuleManager.install: Error checking platform support for '{install_id}': {e}")
 
