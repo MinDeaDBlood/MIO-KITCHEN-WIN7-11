@@ -887,6 +887,10 @@ class MkcSugges:
             self.library = json.load(f)
 
     def get(self, language: str, prompt: str):
+        # Validate that prompt is a string to prevent TypeError
+        if not isinstance(prompt, str):
+            return None, None
+        
         similarity = 0
         text = f"No idea about:\n\t{prompt}\nPlease Report It To us."
         detail = 'Unknown'
@@ -914,14 +918,14 @@ class MkcSugges:
         else:
             return None, None
 
-    def catch_error(self, string) -> Union[str, int]:
+    def catch_error(self, string) -> Union[str, None]:
         catch_error = [i for i in string.split("\n") if 'error' in i or 'failed' in i]
         if not catch_error:
-            return 1
+            return None
         else:
             catch_error = catch_error[0]
         if not catch_error:
-            return 1
+            return None
         return catch_error
 
 
