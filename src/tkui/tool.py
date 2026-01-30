@@ -2265,7 +2265,16 @@ class Welcome(ttk.Frame):
                 self.next.config(text=next_text, command=lambda: self.change_page(self.oobe + 1))
 
     def destroy_welcome(self):
-        """ Safely destroys the Welcome frame. """
+        """ Safely destroys the Welcome frame and marks OOBE as completed. """
+        # Mark OOBE as completed by setting oobe = 6
+        _settings_obj = globals().get('settings')
+        if _settings_obj:
+            try:
+                _settings_obj.set_value('oobe', '6')
+                logging.info("OOBE completed successfully. Set oobe=6 in settings.")
+            except Exception as e:
+                logging.error(f"Failed to set oobe=6 in settings: {e}")
+        
         _states_obj = globals().get('states')
         if _states_obj:
             _states_obj.in_oobe = False  # Set this before destroying, so mainloop doesn't get stuck
